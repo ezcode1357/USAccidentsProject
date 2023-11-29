@@ -315,6 +315,8 @@ def main():
 
     preparedxFeat = extract_features(preparedxFeat)
 
+    preparedxFeat = remove_missing_data(preparedxFeat)
+
     preparedxFeat.to_csv('prepared_data.csv', index=False)
     
 
