@@ -34,12 +34,14 @@ def decisionTree(x_train, y_train, x_test, y_test):
     dt.fit(x_train, y_train)
     y_pred = dt.predict(x_test)
     print(result_report(dt, x_train, y_train, x_test, y_test, y_pred, 'Decision Tree'))
+    print('---')
 
 def randomForest(x_train, y_train, x_test, y_test):
     model = RandomForestClassifier(random_state=42)
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Random Forest'))
+    print('---')
 
 def knn(x_train, y_train, x_test, y_test):
     scaler = StandardScaler()
@@ -49,7 +51,14 @@ def knn(x_train, y_train, x_test, y_test):
     model.fit(x_trainScaled, y_train)
     y_pred = model.predict(x_testScaled)
     print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'K Nearest Neighbors'))
+    print('---')
 
+def gaussianNB(x_train, y_train, x_test, y_test):
+    model = GaussianNB()
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Naive Bayes'))
+    print('---')
 
 def main():
     """
@@ -75,6 +84,8 @@ def main():
     decisionTree(x_train, y_train, x_test, y_test)
     randomForest(x_train, y_train, x_test, y_test)
     knn(x_train, y_train, x_test, y_test)
+    gaussianNB(x_train, y_train, x_test, y_test)
+
 
 
 
