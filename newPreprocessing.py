@@ -149,6 +149,9 @@ def extract_features(df):
     # drop unneeded features
     df = df.drop(columns=['Start_Time', 'End_Time', 'hour'])
 
+    # do one final removal of null values in case they are present
+    df = remove_missing_data(df)
+
     return df
 
 # STEP 3 - remove the features indicated by the heat map
