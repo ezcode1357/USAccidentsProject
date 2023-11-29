@@ -1,4 +1,7 @@
-# **Note**: RUN newPreprocessing.py BEFORE RUNNING THIS FILE TO GET THE final_data.csv FILE
+# **Notes**: 
+# 1. RUN newPreprocessing.py BEFORE RUNNING THIS FILE TO GET THE final_data.csv FILE
+# 2. I am running this with scikit-learn 1.2.2 instead of 1.3.0 because the latter had a bug with model.predict in the method knn()
+    # for more information, see debugging forum: https://github.com/scikit-learn/scikit-learn/issues/26768
 
 import argparse
 import numpy as np
@@ -8,7 +11,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, recall_score, f1_score
+
+import warnings
+
+# Ignore FutureWarnings related to is_sparse in scikit-learn (I had to use an earlier version of sklearn bc there was a bug with KNN, so I kept getting depreciaiton warnings)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 # this gives a report on various scores to determine how well the model did:
 def result_report(model, x_train, y_train, x_test, y_test, y_pred, model_name):
@@ -19,10 +30,25 @@ def result_report(model, x_train, y_train, x_test, y_test, y_pred, model_name):
 
 # these are the models tested:
 def decisionTree(x_train, y_train, x_test, y_test):
-    dt = DecisionTreeClassifier()
+    dt = DecisionTreeClassifier(random_state=42)
     dt.fit(x_train, y_train)
     y_pred = dt.predict(x_test)
     print(result_report(dt, x_train, y_train, x_test, y_test, y_pred, 'Decision Tree'))
+
+def randomForest(x_train, y_train, x_test, y_test):
+    model = RandomForestClassifier(random_state=42)
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Random Forest'))
+
+def knn(x_train, y_train, x_test, y_test):
+    scaler = StandardScaler()
+    x_trainScaled = scaler.fit_transform(x_train)
+    x_testScaled = scaler.transform(x_test)
+    model = KNeighborsClassifier()
+    model.fit(x_trainScaled, y_train)
+    y_pred = model.predict(x_testScaled)
+    print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'K Nearest Neighbors'))
 
 
 def main():
@@ -47,6 +73,8 @@ def main():
     x_train, x_test, y_train, y_test = train_test_split(xData_Resampled, yData_Resampled, test_size=0.2, random_state=42)
 
     decisionTree(x_train, y_train, x_test, y_test)
+    randomForest(x_train, y_train, x_test, y_test)
+    knn(x_train, y_train, x_test, y_test)
 
 
 
