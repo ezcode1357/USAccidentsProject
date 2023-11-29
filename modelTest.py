@@ -13,9 +13,10 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, recall_score, f1_score
+from xgboost import XGBClassifier
 
 import warnings
 
@@ -46,19 +47,19 @@ def randomForest(x_train, y_train, x_test, y_test):
     print('----------------------------------')
     return model
 
-def knn(x_train, y_train, x_test, y_test):
+def knn(x_train, y_train, x_test, y_test, idealN):
     scaler = StandardScaler()
     x_trainScaled = scaler.fit_transform(x_train)
     x_testScaled = scaler.transform(x_test)
-    model = KNeighborsClassifier()
+    model = KNeighborsClassifier(n_neighbors=idealN)
     model.fit(x_trainScaled, y_train)
     y_pred = model.predict(x_testScaled)
     print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'K Nearest Neighbors'))
     print('----------------------------------')
     return model
 
-def gaussianNB(x_train, y_train, x_test, y_test):
-    model = GaussianNB()
+def bernoulliNB(x_train, y_train, x_test, y_test):
+    model = BernoulliNB()
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Naive Bayes'))
@@ -69,16 +70,24 @@ def logisticRegression(x_train, y_train, x_test, y_test):
     scaler = StandardScaler()
     x_trainScaled = scaler.fit_transform(x_train)
     x_testScaled = scaler.transform(x_test)
-    model = LogisticRegression(random_state=42, multi_class='multinomial', max_iter=1000)
+    model = LogisticRegression(random_state=42)
     model.fit(x_trainScaled, y_train)
     y_pred = model.predict(x_testScaled)
     print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'Logistic Regression'))
     print('----------------------------------')
     return model
 
-def voting(x_train, y_train, x_test, y_test, dt, rf, kn, gnb, lr):
+def xgBoost(x_train, y_train, x_test, y_test):
+    model = XGBClassifier(objective='binary:logistic', random_state=42)
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'XGBoost'))
+    print('----------------------------------')
+    return model
+
+def voting(x_train, y_train, x_test, y_test, dt, rf, kn, nb, lr, xgb):
     model = VotingClassifier(estimators=[
-        ('dt-classifier', dt), ('rf-classifier', rf), ('knn-classifier', kn), ('gnb-classifier', gnb), ('lr-classifier', lr)], voting='soft')
+        ('dt-classifier', dt), ('rf-classifier', rf), ('knn-classifier', kn), ('nb-classifier', nb), ('lr-classifier', lr), ('xgb-classifier', xgb)], voting='soft')
 
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
@@ -110,13 +119,11 @@ def main():
     
     dt = decisionTree(x_train, y_train, x_test, y_test)
     rf = randomForest(x_train, y_train, x_test, y_test)
-    kn = knn(x_train, y_train, x_test, y_test)
-    gnb = gaussianNB(x_train, y_train, x_test, y_test)
+    kn = knn(x_train, y_train, x_test, y_test, 5)
+    nb = bernoulliNB(x_train, y_train, x_test, y_test)
     lr = logisticRegression(x_train, y_train, x_test, y_test)
-    voting(x_train, y_train, x_test, y_test, dt, rf, kn, gnb, lr)
-
-
-
+    xgb = xgBoost(x_train, y_train, x_test, y_test)
+    voting(x_train, y_train, x_test, y_test, dt, rf, kn, nb, lr, xgb)
 
 
 
