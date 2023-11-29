@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
-#github test
 
 def remove_missing_data(df):
     """
@@ -17,32 +16,6 @@ def remove_missing_data(df):
     """
     cleaned_df = df.dropna()
     return cleaned_df
-
-# FEATURES:
-
-    # determine the distance in time between when the weather was recorded and the start time of the accident
-    # REMOVE:
-        # Start_Lat
-        # Start_Lng
-        # End_Lat
-        # End_Lng
-        # Distance
-        # Street
-        # City
-        # County
-        # State
-        # Country
-        # Timezone
-        # Airport_Code
-        # Weather_Timestamp
-        # Turning Loop
-    # ONE HOT ENCODE:
-        # Turn all true values into 1 and all false values into 0
-        # Weather_Condition
-        # Sunrise_Sunset (Day = 0, Night = 1, Other = 3)
-        # Civil_Twilight
-        # Nautical_Twilight
-        # Astronomical_Twilight
 
 # STEP 1 - clean the data and handle binary categorical data
 def prepare_data(df):
@@ -72,8 +45,9 @@ def prepare_data(df):
 
     return cleaned_data
 
-# STEP 3 - create important features including the target variable (traffic duraction) and others (day of week)
+# STEP 2 - create important features including the target variable (traffic duraction) and others (day of week)
 def extract_features(df):
+
     # Convert Start_Time samples with '%Y-%m-%d %H:%M:%S.%f' format to '%Y-%m-%d %H:%M:%S'
     df['Start_Time'] = pd.to_datetime(df['Start_Time'], errors='coerce')
     startMask = pd.notna(df['Start_Time'])
@@ -144,6 +118,15 @@ def extract_features(df):
     df['Visibility(mi)'] = df['Visibility(mi)'].apply(get_VC)
     df['Pressure(in)'] = df['Pressure(in)'].apply(get_PC)
     df['time_of_day'] = df['hour'].apply(get_time_of_day)
+
+    # turn this from a multiclass problem to a binary classification problem
+    def get_class(label):
+        if label <= 2:
+            return 0 # LOW SEVERITY
+        else:
+            return 1 # HIGH SEVERITY
+
+    df['Severity'] = df['Severity'].apply(get_class)
 
     # Extract traffic duration in minutes
     df['Start_Time'] = pd.to_datetime(df['Start_Time'], format='%Y-%m-%d %H:%M:%S')
