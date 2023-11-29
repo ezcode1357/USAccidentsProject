@@ -11,9 +11,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, recall_score, f1_score
 
 import warnings
@@ -34,14 +35,16 @@ def decisionTree(x_train, y_train, x_test, y_test):
     dt.fit(x_train, y_train)
     y_pred = dt.predict(x_test)
     print(result_report(dt, x_train, y_train, x_test, y_test, y_pred, 'Decision Tree'))
-    print('---')
+    print('----------------------------------')
+    return dt
 
 def randomForest(x_train, y_train, x_test, y_test):
     model = RandomForestClassifier(random_state=42)
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Random Forest'))
-    print('---')
+    print('----------------------------------')
+    return model
 
 def knn(x_train, y_train, x_test, y_test):
     scaler = StandardScaler()
@@ -51,14 +54,36 @@ def knn(x_train, y_train, x_test, y_test):
     model.fit(x_trainScaled, y_train)
     y_pred = model.predict(x_testScaled)
     print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'K Nearest Neighbors'))
-    print('---')
+    print('----------------------------------')
+    return model
 
 def gaussianNB(x_train, y_train, x_test, y_test):
     model = GaussianNB()
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Naive Bayes'))
-    print('---')
+    print('----------------------------------')
+    return model
+
+def logisticRegression(x_train, y_train, x_test, y_test):
+    scaler = StandardScaler()
+    x_trainScaled = scaler.fit_transform(x_train)
+    x_testScaled = scaler.transform(x_test)
+    model = LogisticRegression(random_state=42, multi_class='multinomial', max_iter=1000)
+    model.fit(x_trainScaled, y_train)
+    y_pred = model.predict(x_testScaled)
+    print(result_report(model, x_trainScaled, y_train, x_testScaled, y_test, y_pred, 'Logistic Regression'))
+    print('----------------------------------')
+    return model
+
+def voting(x_train, y_train, x_test, y_test, dt, rf, kn, gnb, lr):
+    model = VotingClassifier(estimators=[
+        ('dt-classifier', dt), ('rf-classifier', rf), ('knn-classifier', kn), ('gnb-classifier', gnb), ('lr-classifier', lr)], voting='soft')
+
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(result_report(model, x_train, y_train, x_test, y_test, y_pred, 'Voting'))
+    print('----------------------------------')
 
 def main():
     """
@@ -81,10 +106,16 @@ def main():
     # Split the data into train and test sets (80% train, 20% test)
     x_train, x_test, y_train, y_test = train_test_split(xData_Resampled, yData_Resampled, test_size=0.2, random_state=42)
 
-    decisionTree(x_train, y_train, x_test, y_test)
-    randomForest(x_train, y_train, x_test, y_test)
-    knn(x_train, y_train, x_test, y_test)
-    gaussianNB(x_train, y_train, x_test, y_test)
+    print('--- MODEL PERFORMANCE REPORT ---')
+    
+    dt = decisionTree(x_train, y_train, x_test, y_test)
+    rf = randomForest(x_train, y_train, x_test, y_test)
+    kn = knn(x_train, y_train, x_test, y_test)
+    gnb = gaussianNB(x_train, y_train, x_test, y_test)
+    lr = logisticRegression(x_train, y_train, x_test, y_test)
+    voting(x_train, y_train, x_test, y_test, dt, rf, kn, gnb, lr)
+
+
 
 
 
