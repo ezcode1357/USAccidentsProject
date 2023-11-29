@@ -1,3 +1,5 @@
+# **Note**: RUN newPreprocessing.py BEFORE RUNNING THIS FILE TO GET THE final_data.csv FILE
+
 import argparse
 import numpy as np
 import pandas as pd
@@ -6,18 +8,23 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, recall_score, f1_score
 
+# this gives a report on various scores to determine how well the model did:
+def result_report(model, x_train, y_train, x_test, y_test, y_pred, model_name):
+    perf_df=pd.DataFrame({'Train_Score': model.score(x_train, y_train), "Test_Score": model.score (x_test, y_test),
+                       "Precision_Score": precision_score(y_test, y_pred, average='weighted'), "Recall_Score": recall_score(y_test, y_pred, average='weighted'),
+                       "F1_Score": f1_score(y_test, y_pred, average='weighted'), "accuracy": accuracy_score(y_test, y_pred)}, index=[model_name])
+    return perf_df
+
+# these are the models tested:
 def decisionTree(x_train, y_train, x_test, y_test):
     dt = DecisionTreeClassifier()
     dt.fit(x_train, y_train)
     y_pred = dt.predict(x_test)
-
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"DT Accuracy: {accuracy: .2f}")
+    print(result_report(dt, x_train, y_train, x_test, y_test, y_pred, 'Decision Tree'))
 
 
-# RUN newPreprocessing.py FIRST TO GET final_data.csv
 def main():
     """
     Main file to run from the command line.
@@ -40,6 +47,7 @@ def main():
     x_train, x_test, y_train, y_test = train_test_split(xData_Resampled, yData_Resampled, test_size=0.2, random_state=42)
 
     decisionTree(x_train, y_train, x_test, y_test)
+
 
 
 if __name__ == "__main__":
