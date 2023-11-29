@@ -74,6 +74,10 @@ def prepare_data(df):
 
 # STEP 3 - create important features including the target variable (traffic duraction) and others (day of week)
 def extract_features(df):
+    # Convert Start_Time samples with '%Y-%m-%d %H:%M:%S.%f' format to '%Y-%m-%d %H:%M:%S'
+    df['Start_Time'] = pd.to_datetime(df['Start_Time'], errors='coerce')
+    startMask = pd.notna(df['Start_Time'])
+    df.loc[startMask, 'Start_Time'] = df.loc[startMask, 'Start_Time'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
     # Create the features 'day_of_week', 'hour', 'month', 'year'
     df['day_of_week'] = pd.to_datetime(df['Start_Time'], format='%Y-%m-%d %H:%M:%S').dt.strftime('%A')
